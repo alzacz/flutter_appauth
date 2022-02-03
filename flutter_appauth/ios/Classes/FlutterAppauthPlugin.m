@@ -100,11 +100,6 @@ NSString *const AUTHORIZE_METHOD = @"authorize";
 NSString *const AUTHORIZE_AND_EXCHANGE_CODE_METHOD = @"authorizeAndExchangeCode";
 NSString *const TOKEN_METHOD = @"token";
 NSString *const END_SESSION_METHOD = @"endSession";
-NSString *const AUTHORIZE_ERROR_CODE = @"authorize_failed";
-NSString *const AUTHORIZE_AND_EXCHANGE_CODE_ERROR_CODE = @"authorize_and_exchange_code_failed";
-NSString *const DISCOVERY_ERROR_CODE = @"discovery_failed";
-NSString *const TOKEN_ERROR_CODE = @"token_failed";
-NSString *const END_SESSION_ERROR_CODE = @"end_session_failed";
 NSString *const DISCOVERY_ERROR_MESSAGE_FORMAT = @"Error retrieving discovery document: %@";
 NSString *const TOKEN_ERROR_MESSAGE_FORMAT = @"Failed to get token: %@";
 NSString *const AUTHORIZE_ERROR_MESSAGE_FORMAT = @"Failed to authorize: %@";
@@ -204,9 +199,8 @@ NSString *const END_SESSION_ERROR_MESSAGE_FORMAT = @"Failed to end session: %@";
                                                                                                                                                     NSError *_Nullable error) {
             if(authState) {
                 result([self processResponses:authState.lastTokenResponse authResponse:authState.lastAuthorizationResponse]);
-                
             } else {
-                [self finishWithError:AUTHORIZE_AND_EXCHANGE_CODE_ERROR_CODE message:[self formatMessageWithError:AUTHORIZE_ERROR_MESSAGE_FORMAT error:error] result:result];
+                [self finishWithError:error message:[self formatMessageWithError:AUTHORIZE_ERROR_MESSAGE_FORMAT error:error] result:result];
             }
         }];
     } else {
@@ -219,7 +213,7 @@ NSString *const END_SESSION_ERROR_MESSAGE_FORMAT = @"Failed to end session: %@";
                 [processedResponse setObject:authorizationResponse.request.codeVerifier forKey:@"codeVerifier"];
                 result(processedResponse);
             } else {
-                [self finishWithError:AUTHORIZE_ERROR_CODE message:[self formatMessageWithError:AUTHORIZE_ERROR_MESSAGE_FORMAT error:error] result:result];
+                [self finishWithError:error message:[self formatMessageWithError:AUTHORIZE_ERROR_MESSAGE_FORMAT error:error] result:result];
             }
         }];
     }
@@ -241,11 +235,11 @@ NSString *const END_SESSION_ERROR_MESSAGE_FORMAT = @"Failed to end session: %@";
 
 - (void)finishWithDiscoveryError:(NSError * _Nullable)error result:(FlutterResult)result {
     NSString *message = [NSString stringWithFormat:DISCOVERY_ERROR_MESSAGE_FORMAT, [error localizedDescription]];
-    [self finishWithError:DISCOVERY_ERROR_CODE message:message result:result];
+    [self finishWithError:error message:message result:result];
 }
 
-- (void)finishWithError:(NSString *)errorCode message:(NSString *)message  result:(FlutterResult)result {
-    result([FlutterError errorWithCode:errorCode message:message details:nil]);
+- (void)finishWithError:(NSError *)error message:(NSString *)message  result:(FlutterResult)result {
+    result([FlutterError errorWithCode:[NSString stringWithFormat:@"%d", error.code] message:message details:nil]);
 }
 
 
@@ -340,7 +334,7 @@ NSString *const END_SESSION_ERROR_MESSAGE_FORMAT = @"Failed to end session: %@";
         self->_currentAuthorizationFlow = nil;
         if(!endSessionResponse) {
             NSString *message = [NSString stringWithFormat:END_SESSION_ERROR_MESSAGE_FORMAT, [error localizedDescription]];
-            [self finishWithError:END_SESSION_ERROR_CODE message:message result:result];
+            [self finishWithError:error message:message result:result];
             return;
         }
         NSMutableDictionary *processedResponse = [[NSMutableDictionary alloc] init];
@@ -367,7 +361,7 @@ NSString *const END_SESSION_ERROR_MESSAGE_FORMAT = @"Failed to end session: %@";
         if (response) {
             result([self processResponses:response authResponse:nil]);                                           } else {
                 NSString *message = [NSString stringWithFormat:TOKEN_ERROR_MESSAGE_FORMAT, [error localizedDescription]];
-                [self finishWithError:TOKEN_ERROR_CODE message:message result:result];
+                [self finishWithError:error message:message result:result];
             }
     }];
 }

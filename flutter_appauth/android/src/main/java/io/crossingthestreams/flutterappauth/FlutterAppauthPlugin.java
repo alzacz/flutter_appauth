@@ -45,12 +45,12 @@ public class FlutterAppauthPlugin implements FlutterPlugin, MethodCallHandler, P
     private static final String TOKEN_METHOD = "token";
     private static final String END_SESSION_METHOD = "endSession";
 
-    private static final String DISCOVERY_ERROR_CODE = "discovery_failed";
     private static final String AUTHORIZE_AND_EXCHANGE_CODE_ERROR_CODE = "authorize_and_exchange_code_failed";
     private static final String AUTHORIZE_ERROR_CODE = "authorize_failed";
     private static final String TOKEN_ERROR_CODE = "token_failed";
     private static final String END_SESSION_ERROR_CODE = "end_session_failed";
     private static final String NULL_INTENT_ERROR_CODE = "null_intent";
+
 
     private static final String DISCOVERY_ERROR_MESSAGE_FORMAT = "Error retrieving discovery document: [error: %s, description: %s]";
     private static final String TOKEN_ERROR_MESSAGE_FORMAT = "Failed to get token: [error: %s, description: %s]";
@@ -432,7 +432,7 @@ public class FlutterAppauthPlugin implements FlutterPlugin, MethodCallHandler, P
     }
 
     private void finishWithTokenError(AuthorizationException ex) {
-        finishWithError(TOKEN_ERROR_CODE, String.format(TOKEN_ERROR_MESSAGE_FORMAT, ex.error, ex.errorDescription), getCauseFromException(ex));
+        finishWithError(Integer.toString(ex.code), String.format(TOKEN_ERROR_MESSAGE_FORMAT, ex.error, ex.errorDescription), getCauseFromException(ex));
     }
 
 
@@ -451,11 +451,11 @@ public class FlutterAppauthPlugin implements FlutterPlugin, MethodCallHandler, P
     }
 
     private void finishWithDiscoveryError(AuthorizationException ex) {
-        finishWithError(DISCOVERY_ERROR_CODE, String.format(DISCOVERY_ERROR_MESSAGE_FORMAT, ex.error, ex.errorDescription), getCauseFromException(ex));
+        finishWithError(Integer.toString(ex.code), String.format(DISCOVERY_ERROR_MESSAGE_FORMAT, ex.error, ex.errorDescription), getCauseFromException(ex));
     }
 
     private void finishWithEndSessionError(AuthorizationException ex) {
-        finishWithError(END_SESSION_ERROR_CODE, String.format(END_SESSION_ERROR_MESSAGE_FORMAT, ex.error, ex.errorDescription), getCauseFromException(ex));
+        finishWithError(Integer.toString(ex.code), String.format(END_SESSION_ERROR_MESSAGE_FORMAT, ex.error, ex.errorDescription), getCauseFromException(ex));
     }
 
     private String getCauseFromException(Exception ex) {
@@ -510,7 +510,7 @@ public class FlutterAppauthPlugin implements FlutterPlugin, MethodCallHandler, P
                         if (resp != null) {
                             finishWithSuccess(tokenResponseToMap(resp, authResponse));
                         } else {
-                            finishWithError(AUTHORIZE_AND_EXCHANGE_CODE_ERROR_CODE, String.format(AUTHORIZE_ERROR_MESSAGE_FORMAT, ex.error, ex.errorDescription), getCauseFromException(ex));
+                            finishWithError(Integer.toString(ex.code), String.format(AUTHORIZE_ERROR_MESSAGE_FORMAT, ex.error, ex.errorDescription), getCauseFromException(ex));
                         }
                     }
                 };
