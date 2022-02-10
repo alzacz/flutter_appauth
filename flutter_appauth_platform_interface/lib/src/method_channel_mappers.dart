@@ -13,6 +13,7 @@ Map<String, Object?> _convertCommonRequestDetailsToMap(
     'clientId': commonRequestDetails.clientId,
     'issuer': commonRequestDetails.issuer,
     'discoveryUrl': commonRequestDetails.discoveryUrl,
+    'authorizationUrlOverride': commonRequestDetails.authorizationUrlOverride,
     'redirectUrl': commonRequestDetails.redirectUrl,
     'scopes': commonRequestDetails.scopes,
     'serviceConfiguration': commonRequestDetails.serviceConfiguration?.toMap(),

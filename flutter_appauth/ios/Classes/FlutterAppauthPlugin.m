@@ -19,6 +19,7 @@
 @property(nonatomic, strong) NSString *issuer;
 @property(nonatomic, strong) NSString *grantType;
 @property(nonatomic, strong) NSString *discoveryUrl;
+@property(nonatomic, strong) NSString *authorizationUrlOverride;
 @property(nonatomic, strong) NSString *redirectUrl;
 @property(nonatomic, strong) NSString *refreshToken;
 @property(nonatomic, strong) NSString *codeVerifier;
@@ -36,6 +37,7 @@
     _clientSecret = [ArgumentProcessor processArgumentValue:arguments withKey:@"clientSecret"];
     _issuer = [ArgumentProcessor processArgumentValue:arguments withKey:@"issuer"];
     _discoveryUrl = [ArgumentProcessor processArgumentValue:arguments withKey:@"discoveryUrl"];
+    _authorizationUrlOverride = [ArgumentProcessor processArgumentValue:arguments withKey:@"authorizationUrlOverride"];
     _redirectUrl = [ArgumentProcessor processArgumentValue:arguments withKey:@"redirectUrl"];
     _refreshToken = [ArgumentProcessor processArgumentValue:arguments withKey:@"refreshToken"];
     _authorizationCode = [ArgumentProcessor processArgumentValue:arguments withKey:@"authorizationCode"];
@@ -76,6 +78,7 @@
 @property(nonatomic, strong) NSString *state;
 @property(nonatomic, strong) NSString *issuer;
 @property(nonatomic, strong) NSString *discoveryUrl;
+@property(nonatomic, strong) NSString *authorizationUrlOverride;
 @property(nonatomic, strong) NSDictionary *serviceConfigurationParameters;
 @property(nonatomic, strong) NSDictionary *additionalParameters;
 @end
@@ -87,6 +90,7 @@
     _state = [ArgumentProcessor processArgumentValue:arguments withKey:@"state"];
     _issuer = [ArgumentProcessor processArgumentValue:arguments withKey:@"issuer"];
     _discoveryUrl = [ArgumentProcessor processArgumentValue:arguments withKey:@"discoveryUrl"];
+    _authorizationUrlOverride = [ArgumentProcessor processArgumentValue:arguments withKey:@"authorizationUrlOverride"];
     _serviceConfigurationParameters = [ArgumentProcessor processArgumentValue:arguments withKey:@"serviceConfiguration"];
     _additionalParameters = [ArgumentProcessor processArgumentValue:arguments withKey:@"additionalParameters"];
     return self;
@@ -159,12 +163,26 @@ NSString *const END_SESSION_ERROR_MESSAGE_FORMAT = @"Failed to end session: %@";
                                                                   completion:^(OIDServiceConfiguration *_Nullable configuration,
                                                                                NSError *_Nullable error) {
             
+            
+            
             if (!configuration) {
                 [self finishWithDiscoveryError:error result:result];
                 return;
             }
             
-            [self performAuthorization:configuration clientId:requestParameters.clientId clientSecret:requestParameters.clientSecret scopes:requestParameters.scopes redirectUrl:requestParameters.redirectUrl additionalParameters:requestParameters.additionalParameters preferEphemeralSession:requestParameters.preferEphemeralSession result:result exchangeCode:exchangeCode];
+            NSURL *authorizationUrl;
+            
+            if(_authorizationUrlOverride != nil) {
+                authorizationUrl = [NSURL URLWithString:_authorizationUrlOverride];
+            } else {
+                authorizationUrl = serviceConfiguration.authorizationEndpoint;
+            }
+            
+            OIDServiceConfiguration *newConfiguration = [[OIDServiceConfiguration alloc] initWithAuthorizationEndpoint:authorizationUrl
+             tokenEndpoint:serviceConfiguration.tokenEndpoint issuer:serviceConfiguration.issuer registrationEndpoint:serviceConfiguration.registrationEndpoint endSessionEndpoint:serviceConfiguration.endSessionEndpoint];
+            
+            
+            [self performAuthorization:newConfiguration clientId:requestParameters.clientId clientSecret:requestParameters.clientSecret scopes:requestParameters.scopes redirectUrl:requestParameters.redirectUrl additionalParameters:requestParameters.additionalParameters preferEphemeralSession:requestParameters.preferEphemeralSession result:result exchangeCode:exchangeCode];
         }];
     } else {
         NSURL *issuerUrl = [NSURL URLWithString:requestParameters.issuer];
@@ -268,7 +286,17 @@ NSString *const END_SESSION_ERROR_MESSAGE_FORMAT = @"Failed to end session: %@";
                 return;
             }
             
-            [self performTokenRequest:configuration requestParameters:requestParameters result:result];
+            NSURL *authorizationUrl;
+                      
+            if(_authorizationUrlOverride != nil) {
+                authorizationUrl = [NSURL URLWithString:_authorizationUrlOverride];
+            } else {
+                authorizationUrl = serviceConfiguration.authorizationEndpoint;
+            }
+
+            OIDServiceConfiguration *newConfiguration = [[OIDServiceConfiguration alloc] initWithAuthorizationEndpoint:authorizationUrl tokenEndpoint:serviceConfiguration.tokenEndpoint issuer:serviceConfiguration.issuer registrationEndpoint:serviceConfiguration.registrationEndpoint endSessionEndpoint:serviceConfiguration.endSessionEndpoint];
+            
+            [self performTokenRequest:newConfiguration requestParameters:requestParameters result:result];
         }];
     } else {
         NSURL *issuerUrl = [NSURL URLWithString:requestParameters.issuer];

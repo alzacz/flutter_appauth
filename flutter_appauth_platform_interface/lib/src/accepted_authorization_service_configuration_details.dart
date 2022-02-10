@@ -7,6 +7,8 @@ mixin AcceptedAuthorizationServiceConfigurationDetails {
   /// The URL of where the discovery document can be found.
   String? discoveryUrl;
 
+  String? authorizationUrlOverride;
+
   /// The details of the OAuth 2.0 endpoints that can be explicitly provided when discovery isn't used or not possible.
   AuthorizationServiceConfiguration? serviceConfiguration;
 

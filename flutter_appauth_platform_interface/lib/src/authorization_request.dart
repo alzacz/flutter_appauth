@@ -10,6 +10,7 @@ class AuthorizationRequest extends CommonRequestDetails
     String redirectUrl, {
     String? issuer,
     String? discoveryUrl,
+    String? authorizationUrlOverride,
     AuthorizationServiceConfiguration? serviceConfiguration,
     String? loginHint,
     List<String>? scopes,
@@ -26,6 +27,7 @@ class AuthorizationRequest extends CommonRequestDetails
     this.additionalParameters = additionalParameters;
     this.issuer = issuer;
     this.discoveryUrl = discoveryUrl;
+    this.authorizationUrlOverride = authorizationUrlOverride;
     this.loginHint = loginHint;
     this.promptValues = promptValues;
     this.allowInsecureConnections = allowInsecureConnections;
